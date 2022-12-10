@@ -1,0 +1,7 @@
+*.o
+*.a
+guide
+
+o.out
+*.elf.map
+

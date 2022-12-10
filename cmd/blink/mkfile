@@ -1,0 +1,11 @@
+<../../mkconfig
+
+TARG=blink
+
+HFILES=
+
+LIBS=pico
+
+OFILES=blink.$O
+
+<../../mkone

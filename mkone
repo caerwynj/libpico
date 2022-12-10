@@ -1,0 +1,40 @@
+
+libs=${LIBS:%=../../lib/lib%.a}
+
+all:V:	$O.out
+
+install:V:	$BIN/$TARG
+
+installall:V:
+	for objtype in $CPUS
+	do
+		mk $MKFLAGS install
+	done
+
+nuke:V:	nuke-std
+
+clean:V: clean-std
+
+$O.out:	$OFILES $libs
+	$LD $LDFLAGS -o $target $OFILES $libs $SYSLIBS $ROOT/boot_stage2/bs2_default_padded_checksummed.S 
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS -o $target $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS -o $target $stem.s
+
+%.$O:	%.S$MACOSINF
+	$AS $ASFLAGS -o $target $stem.S
+
+clean-std:V:
+	rm -f core [$OS].out 
+	rm -f `echo $OS | sed 's/./ *.&/g'`
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.debug y.output
+
+$BIN/%:	$O.out
+	rm -f $BIN/$stem && cp $O.out $BIN/$stem

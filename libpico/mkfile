@@ -1,0 +1,119 @@
+<../mkconfig
+
+HFILES=
+
+OFILES=\
+	adc.$O\
+	binary_info.$O\
+	bootrom.$O\
+	claim.$O\
+	clocks.$O\
+	critical_section.$O\
+	datetime.$O\
+	dma.$O\
+	double_init_rom.$O\
+	double_math.$O\
+	exception.$O\
+	flash.$O\
+	float_init_rom.$O\
+	float_math.$O\
+	gpio.$O\
+	i2c.$O\
+	interp.$O\
+	irq.$O\
+	lock_core.$O\
+	mem_ops.$O\
+	multicore.$O\
+	mutex.$O\
+	pheap.$O\
+	pico_bootsel_via_double_reset.$O\
+	pico_malloc.$O\
+	pio.$O\
+	platform.$O\
+	pll.$O\
+	printf.$O\
+	queue.$O\
+#	reset_interface.$O\
+	rp2040_usb_device_enumeration.$O\
+	rtc.$O\
+	runtime.$O\
+	sem.$O\
+	spi.$O\
+	stdio.$O\
+	stdio_semihosting.$O\
+	stdio_uart.$O\
+#	stdio_usb.$O\
+#	stdio_usb_descriptors.$O\
+	stdlib.$O\
+	sync.$O\
+	system_RP2040.$O\
+	time.$O\
+	timeout_helper.$O\
+	timer.$O\
+	uart.$O\
+	unique_id.$O\
+	vreg.$O\
+	watchdog.$O\
+	xosc.$O\
+	asm_helper.$O\
+	bit_ops_aeabi.$O\
+	crt0.$O\
+	divider.$O\
+	divider_helper.$O\
+#	double_aeabi.$O\
+	double_none.$O\
+	double_v1_rom_shim.$O\
+#	float_aeabi.$O\
+	float_none.$O\
+	float_v1_rom_shim.$O\
+	irq_handler_chain.$O\
+	mem_ops_aeabi.$O\
+	pico_divider.$O\
+	pico_int64_ops_aeabi.$O\
+	printf_none.$O
+
+LIB=libpico.a
+LIBDIR=../lib
+LIBRARY=$LIBDIR/$LIB
+LIBOBJ=${OFILES:%=$LIBRARY(%)}
+
+CFLAGS=$C_FLAGS $C_DEFINES $C_INCLUDES
+
+all:V:	$LIBRARY
+
+install:V:	$LIBRARY
+
+installall:V:
+	for objtype in $CPUS
+	do
+		mk $MKFLAGS install
+	done
+
+nuke:V:	nuke-std
+
+clean:V: clean-std
+
+$LIBRARY:	$LIBOBJ
+	$AR $ARFLAGS $target $newmember
+
+$LIBRARY(%.$O):N:	%.$O
+
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS -o $target $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS -o $target $stem.s
+
+%.$O:	%.S$MACOSINF
+	$AS $ASFLAGS -o $target $stem.S
+
+clean-std:V:
+	rm -f core [$OS].out 
+	rm -f `echo $OS | sed 's/./ *.&/g'`
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.debug y.output
+

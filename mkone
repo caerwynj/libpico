@@ -15,6 +15,9 @@ nuke:V:	nuke-std
 
 clean:V: clean-std
 
+$O.uf2: $O.out
+	elf2uf2 $O.out $O.uf2
+
 $O.out:	$OFILES $libs
 	$LD $LDFLAGS -o $target $OFILES $libs $SYSLIBS $ROOT/boot_stage2/bs2_default_padded_checksummed.S 
 

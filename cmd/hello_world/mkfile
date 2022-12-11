@@ -1,0 +1,11 @@
+<../../mkconfig
+
+TARG=hello
+
+HFILES=
+
+LIBS=pico
+
+OFILES=hello_serial.$O
+
+<../../mkone

@@ -1,0 +1,9 @@
+X ,x@#include "([a-z_0-9]+/)+@x@hardware/structs@c@hardware_structs@
+X ,x@#include "([a-z_0-9]+/)+@x@hardware/regs@c@hardware_regs@
+X ,x@#include "([a-z_0-9]+/)+[a-z\._0-9]+"@x@boards/pico.h@c@boards_pico.h@
+X ,x@#include "([a-z_0-9]+/)+[a-z\._0-9]+"@x@pico/stdio.h@c@pico_stdio.h@
+X ,x@#include "([a-z_0-9]+/)+[a-z\._0-9]+"@x@pico/stdlib.h@c@pico_stdlib.h@
+X ,x@#include "([a-z_0-9]+/)+[a-z\._0-9]+"@x@pico/assert.h@c@pico_assert.h@
+X ,x@#include "([a-z_0-9]+/)+@v@hardware_regs|hardware_structs@x@([a-z_0-9]+/)+@d
+X w
+q

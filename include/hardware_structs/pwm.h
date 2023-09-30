@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_pwm
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/pwm.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/pwm.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -119,7 +119,7 @@ typedef struct {
     io_ro_32 ints;
 } pwm_hw_t;
 
-#define pwm_hw ((pwm_hw_t *const)PWM_BASE)
+#define pwm_hw ((pwm_hw_t *)PWM_BASE)
 
 static_assert( NUM_PWM_SLICES == 8, "");
 

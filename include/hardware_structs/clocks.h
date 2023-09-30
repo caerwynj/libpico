@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_clocks
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/clocks.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/clocks.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -319,7 +319,7 @@ typedef struct {
     io_ro_32 ints;
 } clocks_hw_t;
 
-#define clocks_hw ((clocks_hw_t *const)CLOCKS_BASE)
+#define clocks_hw ((clocks_hw_t *)CLOCKS_BASE)
 
 static_assert( CLK_COUNT == 10, "");
 

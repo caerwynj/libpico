@@ -7,7 +7,7 @@
 #ifndef _PICO_TIMEOUT_HELPER_H
 #define _PICO_TIMEOUT_HELPER_H
 
-#include "time.h"
+#include "pico_time.h"
 
 #ifdef __cplusplus
 extern "C" {

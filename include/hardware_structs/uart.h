@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_uart
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/uart.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/uart.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -171,7 +171,7 @@ typedef struct {
     io_rw_32 dmacr;
 } uart_hw_t;
 
-#define uart0_hw ((uart_hw_t *const)UART0_BASE)
-#define uart1_hw ((uart_hw_t *const)UART1_BASE)
+#define uart0_hw ((uart_hw_t *)UART0_BASE)
+#define uart1_hw ((uart_hw_t *)UART1_BASE)
 
 #endif

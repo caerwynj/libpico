@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_usb
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/usb.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/usb.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -568,7 +568,7 @@ typedef struct {
     io_ro_32 ints;
 } usb_hw_t;
 
-#define usb_hw ((usb_hw_t *const)USBCTRL_REGS_BASE)
+#define usb_hw ((usb_hw_t *)USBCTRL_REGS_BASE)
 
 #define usb_dpram ((usb_device_dpram_t *)USBCTRL_DPRAM_BASE)
 #define usbh_dpram ((usb_host_dpram_t *)USBCTRL_DPRAM_BASE)

@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_spi
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/spi.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/spi.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -94,7 +94,7 @@ typedef struct {
     io_rw_32 dmacr;
 } spi_hw_t;
 
-#define spi0_hw ((spi_hw_t *const)SPI0_BASE)
-#define spi1_hw ((spi_hw_t *const)SPI1_BASE)
+#define spi0_hw ((spi_hw_t *)SPI0_BASE)
+#define spi1_hw ((spi_hw_t *)SPI1_BASE)
 
 #endif

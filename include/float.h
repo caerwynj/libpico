@@ -9,7 +9,7 @@
 
 #include <math.h>
 #include <float.h>
-#include "types.h"
+#include "pico.h"
 #include "sf_table.h"
 
 #ifdef __cplusplus

@@ -34,82 +34,82 @@
 //--------------------------------------------------------------------+
 // INCLUDE
 //--------------------------------------------------------------------+
-#include "common/tusb_common.h"
-#include "osal/osal.h"
-#include "common/tusb_fifo.h"
+#include "tusb_common.h"
+#include "osal.h"
+#include "tusb_fifo.h"
 
 //------------- HOST -------------//
 #if TUSB_OPT_HOST_ENABLED
-  #include "host/usbh.h"
+  #include "usbh.h"
 
   #if CFG_TUH_HID
-    #include "class/hid/hid_host.h"
+    #include "hid_host.h"
   #endif
 
   #if CFG_TUH_MSC
-    #include "class/msc/msc_host.h"
+    #include "msc_host.h"
   #endif
 
   #if CFG_TUH_CDC
-    #include "class/cdc/cdc_host.h"
+    #include "cdc_host.h"
   #endif
 
   #if CFG_TUH_VENDOR
-    #include "class/vendor/vendor_host.h"
+    #include "vendor_host.h"
   #endif
 
 #endif
 
 //------------- DEVICE -------------//
 #if TUSB_OPT_DEVICE_ENABLED
-  #include "device/usbd.h"
+  #include "usbd.h"
 
   #if CFG_TUD_HID
-    #include "class/hid/hid_device.h"
+    #include "hid_device.h"
   #endif
 
   #if CFG_TUD_CDC
-    #include "class/cdc/cdc_device.h"
+    #include "cdc_device.h"
   #endif
 
   #if CFG_TUD_MSC
-    #include "class/msc/msc_device.h"
+    #include "msc_device.h"
   #endif
 
   #if CFG_TUD_AUDIO
-    #include "class/audio/audio_device.h"
+    #include "audio_device.h"
   #endif
 
   #if CFG_TUD_VIDEO
-    #include "class/video/video_device.h"
+    #include "video_device.h"
   #endif
 
   #if CFG_TUD_MIDI
-    #include "class/midi/midi_device.h"
+    #include "midi_device.h"
   #endif
 
   #if CFG_TUD_VENDOR
-    #include "class/vendor/vendor_device.h"
+    #include "vendor_device.h"
   #endif
 
   #if CFG_TUD_USBTMC
-    #include "class/usbtmc/usbtmc_device.h"
+    #include "usbtmc_device.h"
   #endif
 
   #if CFG_TUD_DFU_RUNTIME
-    #include "class/dfu/dfu_rt_device.h"
+    #include "dfu_rt_device.h"
   #endif
 
   #if CFG_TUD_DFU
-    #include "class/dfu/dfu_device.h"
+    #include "dfu_device.h"
   #endif
 
   #if CFG_TUD_ECM_RNDIS || CFG_TUD_NCM
-    #include "class/net/net_device.h"
+    #include "net_device.h"
   #endif
 
   #if CFG_TUD_BTH
-    #include "class/bth/bth_device.h"
+    #include "bth_device.h"
   #endif
 #endif
 

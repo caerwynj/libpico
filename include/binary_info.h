@@ -20,12 +20,10 @@
  * - Identifying flash regions used as block devices/storage
  */
 
-#include "binary_info_defs.h"
+#include "defs.h"
 #include "structure.h"
 #if !PICO_ON_DEVICE && !defined(PICO_NO_BINARY_INFO)
 #define PICO_NO_BINARY_INFO 1
 #endif
-#if !PICO_NO_BINARY_INFO
 #include "code.h"
-#endif
 #endif

@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_i2c
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/i2c.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/i2c.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -327,7 +327,7 @@ typedef struct {
     io_ro_32 comp_type;
 } i2c_hw_t;
 
-#define i2c0_hw ((i2c_hw_t *const)I2C0_BASE)
-#define i2c1_hw ((i2c_hw_t *const)I2C1_BASE)
+#define i2c0_hw ((i2c_hw_t *)I2C0_BASE)
+#define i2c1_hw ((i2c_hw_t *)I2C1_BASE)
 
 #endif

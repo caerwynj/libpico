@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_io_qspi
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/io_qspi.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/io_qspi.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -167,7 +167,7 @@ typedef struct {
     io_qspi_ctrl_hw_t dormant_wake_qspi_ctrl;
 } ioqspi_hw_t;
 
-#define ioqspi_hw ((ioqspi_hw_t *const)IO_QSPI_BASE)
+#define ioqspi_hw ((ioqspi_hw_t *)IO_QSPI_BASE)
 
 static_assert( NUM_QSPI_GPIOS == 6, "");
 

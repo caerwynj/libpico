@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_pll
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/pll.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/pll.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -49,8 +49,8 @@ typedef struct {
     io_rw_32 prim;
 } pll_hw_t;
 
-#define pll_sys_hw ((pll_hw_t *const)PLL_SYS_BASE)
-#define pll_usb_hw ((pll_hw_t *const)PLL_USB_BASE)
+#define pll_sys_hw ((pll_hw_t *)PLL_SYS_BASE)
+#define pll_usb_hw ((pll_hw_t *)PLL_USB_BASE)
 /// \end::pll_hw[]
 
 #endif

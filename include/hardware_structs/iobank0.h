@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_io_bank0
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/io_bank0.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/io_bank0.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -208,7 +208,7 @@ typedef struct {
     io_irq_ctrl_hw_t dormant_wake_irq_ctrl;
 } iobank0_hw_t;
 
-#define iobank0_hw ((iobank0_hw_t *const)IO_BANK0_BASE)
+#define iobank0_hw ((iobank0_hw_t *)IO_BANK0_BASE)
 /// \end::iobank0_hw[]
 
 static_assert( NUM_BANK0_GPIOS == 30, "");

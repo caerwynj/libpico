@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_watchdog
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/watchdog.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/watchdog.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -57,6 +57,6 @@ typedef struct {
     io_rw_32 tick;
 } watchdog_hw_t;
 
-#define watchdog_hw ((watchdog_hw_t *const)WATCHDOG_BASE)
+#define watchdog_hw ((watchdog_hw_t *)WATCHDOG_BASE)
 
 #endif

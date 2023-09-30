@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_pads_bank0
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/pads_bank0.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/pads_bank0.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -40,7 +40,7 @@ typedef struct {
     io_rw_32 io[NUM_BANK0_GPIOS]; // 30
 } padsbank0_hw_t;
 
-#define padsbank0_hw ((padsbank0_hw_t *const)PADS_BANK0_BASE)
+#define padsbank0_hw ((padsbank0_hw_t *)PADS_BANK0_BASE)
 
 static_assert( NUM_BANK0_GPIOS == 30, "");
 

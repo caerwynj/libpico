@@ -5,7 +5,7 @@
  */
 
 #include "pico.h"
-#include "time.h"
+#include "pico_time.h"
 #include "bootrom.h"
 #include "binary_info.h"
 

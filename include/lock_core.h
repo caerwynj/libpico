@@ -8,7 +8,7 @@
 #define _PICO_LOCK_CORE_H
 
 #include "pico.h"
-#include "time.h"
+#include "pico_time.h"
 #include "sync.h"
 
 /** \file lock_core.h

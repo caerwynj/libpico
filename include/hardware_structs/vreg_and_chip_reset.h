@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_vreg_and_chip_reset
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/vreg_and_chip_reset.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/vreg_and_chip_reset.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -44,6 +44,6 @@ typedef struct {
     io_rw_32 chip_reset;
 } vreg_and_chip_reset_hw_t;
 
-#define vreg_and_chip_reset_hw ((vreg_and_chip_reset_hw_t *const)VREG_AND_CHIP_RESET_BASE)
+#define vreg_and_chip_reset_hw ((vreg_and_chip_reset_hw_t *)VREG_AND_CHIP_RESET_BASE)
 
 #endif

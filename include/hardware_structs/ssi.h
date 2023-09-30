@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_ssi
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/ssi.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/ssi.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -205,6 +205,6 @@ typedef struct {
     io_rw_32 txd_drive_edge;
 } ssi_hw_t;
 
-#define ssi_hw ((ssi_hw_t *const)XIP_SSI_BASE)
+#define ssi_hw ((ssi_hw_t *)XIP_SSI_BASE)
 
 #endif

@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_m0plus
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/m0plus.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/m0plus.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -56,6 +56,6 @@ typedef struct {
     io_rw_32 rasr;
 } mpu_hw_t;
 
-#define mpu_hw ((mpu_hw_t *const)(PPB_BASE + M0PLUS_MPU_TYPE_OFFSET))
+#define mpu_hw ((mpu_hw_t *)(PPB_BASE + M0PLUS_MPU_TYPE_OFFSET))
 
 #endif

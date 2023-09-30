@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_busctrl
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/busctrl.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/busctrl.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -72,6 +72,6 @@ typedef struct {
     bus_ctrl_perf_hw_t counter[4];
 } bus_ctrl_hw_t;
 
-#define bus_ctrl_hw ((bus_ctrl_hw_t *const)BUSCTRL_BASE)
+#define bus_ctrl_hw ((bus_ctrl_hw_t *)BUSCTRL_BASE)
 
 #endif

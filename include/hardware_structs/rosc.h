@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_rosc
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/rosc.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/rosc.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -81,6 +81,6 @@ typedef struct {
     io_rw_32 count;
 } rosc_hw_t;
 
-#define rosc_hw ((rosc_hw_t *const)ROSC_BASE)
+#define rosc_hw ((rosc_hw_t *)ROSC_BASE)
 
 #endif

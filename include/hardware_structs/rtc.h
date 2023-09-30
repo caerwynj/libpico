@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_rtc
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/rtc.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/rtc.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -109,6 +109,6 @@ typedef struct {
     io_ro_32 ints;
 } rtc_hw_t;
 
-#define rtc_hw ((rtc_hw_t *const)RTC_BASE)
+#define rtc_hw ((rtc_hw_t *)RTC_BASE)
 
 #endif

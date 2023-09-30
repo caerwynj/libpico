@@ -15,6 +15,7 @@ cp ../pico-sdk/src/common/pico_base/include/pico/config.h include
 mv include/stdio.h include/pico_stdio.h
 mv include/stdlib.h include/pico_stdlib.h
 mv include/assert.h include/pico_assert.h
+mv include/time.h include/pico_time.h
 mv include/hardware_regs/platform_defs.h include
 
 find ../pico-sdk/src/common -name '*.[cS]' -exec cp '{}' libpico \;
@@ -22,3 +23,8 @@ find ../pico-sdk/src/rp2_common -name '*.[cS]' -exec cp '{}' libpico \;
 
 sam -d include/*.h include/*/*.h < sam.script
 sam -d libpico/*.[cS] < sam.script
+
+
+cp ../pico-sdk/lib/cyw43-driver/src/*.c libpico
+cp ../pico-sdk/lib/cyw43-driver/src/*.h include
+cp ../pico-sdk/lib/cyw43-driver/firmware/*.h ../include

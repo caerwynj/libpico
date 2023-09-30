@@ -5,12 +5,10 @@
  */
 
 #include "exception.h"
-#include "hardware_regs/m0plus.h"
-#include "hardware_regs/platform_defs.h"
+#include "platform_defs.h"
 #include "hardware_structs/scb.h"
-
-#include "mutex.h"
-#include "assert.h"
+#include "sync.h"
+#include "pico_assert.h"
 
 #ifndef exception_is_compile_time_default
 static bool exception_is_compile_time_default(exception_handler_t handler) {

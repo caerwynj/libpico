@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_pio
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/pio.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/pio.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -275,8 +275,8 @@ typedef struct {
     io_ro_32 ints1;
 } pio_hw_t;
 
-#define pio0_hw ((pio_hw_t *const)PIO0_BASE)
-#define pio1_hw ((pio_hw_t *const)PIO1_BASE)
+#define pio0_hw ((pio_hw_t *)PIO0_BASE)
+#define pio1_hw ((pio_hw_t *)PIO1_BASE)
 
 static_assert( NUM_PIO_STATE_MACHINES == 4, "");
 static_assert( PIO_INSTRUCTION_COUNT == 32, "");

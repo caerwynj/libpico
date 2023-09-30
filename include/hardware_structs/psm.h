@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_psm
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/psm.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/psm.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -106,6 +106,6 @@ typedef struct {
     io_ro_32 done;
 } psm_hw_t;
 
-#define psm_hw ((psm_hw_t *const)PSM_BASE)
+#define psm_hw ((psm_hw_t *)PSM_BASE)
 
 #endif

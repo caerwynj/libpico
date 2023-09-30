@@ -15,7 +15,7 @@
 // Reference to datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf#tab-registerlist_xip
 //
 // The _REG_ macro is intended to help make the register navigable in your IDE (for example, using the "Go to Definition" feature)
-// _REG_(x) will link to the corresponding register in hardware_regs/xip.h.
+// _REG_(x) will link to the corresponding register in hardware/regs/xip.h.
 //
 // Bit-field descriptions are of the form:
 // BITMASK [BITRANGE]: FIELDNAME (RESETVALUE): DESCRIPTION
@@ -63,7 +63,7 @@ typedef struct {
     io_ro_32 stream_fifo;
 } xip_ctrl_hw_t;
 
-#define xip_ctrl_hw ((xip_ctrl_hw_t *const)XIP_CTRL_BASE)
+#define xip_ctrl_hw ((xip_ctrl_hw_t *)XIP_CTRL_BASE)
 
 #define XIP_STAT_FIFO_FULL XIP_STAT_FIFO_FULL_BITS
 #define XIP_STAT_FIFO_EMPTY XIP_STAT_FIFO_EMPTY_BITS

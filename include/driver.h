@@ -7,13 +7,13 @@
 #ifndef _PICO_STDIO_DRIVER_H
 #define _PICO_STDIO_DRIVER_H
 
-#include "stdio.h"
-#include "platform.h"
+#include "pico_stdio.h"
 
 struct stdio_driver {
     void (*out_chars)(const char *buf, int len);
     void (*out_flush)(void);
     int (*in_chars)(char *buf, int len);
+    void (*set_chars_available_callback)(void (*fn)(void*), void *param);
     stdio_driver_t *next;
 #if PICO_STDIO_ENABLE_CRLF_SUPPORT
     bool last_ended_with_cr;

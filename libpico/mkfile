@@ -77,6 +77,7 @@ OFILES=\
 	vreg.$O\
 	watchdog.$O\
 	xosc.$O\
+	hardware_flash.$O\
 	$CYW43
 
 

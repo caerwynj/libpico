@@ -21,6 +21,9 @@ mv include/hardware_regs/platform_defs.h include
 find ../pico-sdk/src/common -name '*.[cS]' -exec cp '{}' libpico \;
 find ../pico-sdk/src/rp2_common -name '*.[cS]' -exec cp '{}' libpico \;
 
+cp ../pico-sdk/src/rp2_common/hardware_flash/flash.c libpico/hardware_flash.c
+cp ../pico-sdk/src/rp2_common/hardware_flash/include/hardware/flash.h include/hardware_flash.h
+
 sam -d include/*.h include/*/*.h < sam.script
 sam -d libpico/*.[cS] < sam.script
 

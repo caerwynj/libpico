@@ -180,13 +180,13 @@ LDFLAGS= -mcpu=cortex-m0plus -mthumb -Og -g\
 
 SYSLIBS=
 
-ASM_FLAGS = -mcpu=cortex-m0plus -mthumb -Og -g    
+ASM_FLAGS = -mcpu=cortex-m0plus -mthumb -O3   
 ASM_DEFINES = -DPICO_BOARD=\"pico\" -DPICO_BUILD=1 -DPICO_NO_HARDWARE=0 -DPICO_ON_DEVICE=1
 ASM_INCLUDES = -I$ROOT/include 
 
 ASFLAGS= $ASM_FLAGS $ASM_DEFINES $ASM_INCLUDES
 
-C_FLAGS = -mcpu=cortex-m0plus -mthumb -Og -g   -ffunction-sections -fdata-sections -std=gnu11 -DNDEBUG  
+C_FLAGS = -mcpu=cortex-m0plus -mthumb -O3 -ffunction-sections -fdata-sections -std=gnu11 -DNDEBUG  
 
 # Use UART
 #C_DEFINES =  -DCYW43_LWIP=0 -DLIB_PICO_STDIO_UART=1 -DLIB_PICO_SYNC_CORE=1 -DPICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1

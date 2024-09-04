@@ -2,7 +2,9 @@
 
 DIRS=\
 	libpico\
-	cmd/blink\
+	tinyusb\
+	#cmd/blink\
+	cmd/hello_world\
 	
 all:V:	all-$SHELLTYPE
 install:V: install-$SHELLTYPE

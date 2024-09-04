@@ -16,7 +16,7 @@
 #if PICO_STDIO_USB_ENABLE_RESET_VIA_VENDOR_INTERFACE
 #include "reset_interface.h"
 #include "watchdog.h"
-#include "usbd_pvt.h"
+#include "device/usbd_pvt.h"
 
 static uint8_t itf_num;
 

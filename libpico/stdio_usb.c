@@ -17,7 +17,8 @@
 #include "driver.h"
 #include "mutex.h"
 #include "irq.h"
-#include "usbd_pvt.h" // for usbd_defer_func
+#include "device/usbd_pvt.h" // for usbd_defer_func
+#include "critical_section.h"
 
 static mutex_t stdio_usb_mutex;
 

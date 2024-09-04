@@ -1,11 +1,14 @@
 <../../mkconfig
 
-TARG=hello
+TARG=hello_usb
 
 HFILES=
 
 LIBS=pico
 
-OFILES=hello_serial.$O
+OFILES=hello_usb.$O
 
 <../../mkone
+
+hello.uf2: o.out
+	elf2uf2 o.out hello.uf2

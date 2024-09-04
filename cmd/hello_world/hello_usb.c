@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>
-#include "pico/stdlib.h"
+#include "pico_stdlib.h"
 
 int main() {
     stdio_init_all();

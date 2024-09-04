@@ -55,17 +55,17 @@ OFILES=\
 	printf.$O\
 	printf_none.$O\
 	queue.$O\
-#	reset_interface.$O\
-#	rp2040_usb_device_enumeration.$O\
+	reset_interface.$O\
+	rp2040_usb_device_enumeration.$O\
 	rtc.$O\
 	runtime.$O\
 	sem.$O\
 	spi.$O\
 	stdio.$O\
-	stdio_semihosting.$O\
-	stdio_uart.$O\
-#	stdio_usb.$O\
-#	stdio_usb_descriptors.$O\
+#	stdio_semihosting.$O\
+#	stdio_uart.$O\
+	stdio_usb.$O\
+	stdio_usb_descriptors.$O\
 	stdlib.$O\
 	sync.$O\
 	system_RP2040.$O\
@@ -78,7 +78,7 @@ OFILES=\
 	watchdog.$O\
 	xosc.$O\
 	hardware_flash.$O\
-	$CYW43
+#	$CYW43
 
 
 LIB=libpico.a

@@ -1,7 +1,7 @@
 
 libs=${LIBS:%=../../lib/lib%.a}
 
-all:V:	$O.out
+all:V:	$O.uf2
 
 install:V:	$BIN/$TARG
 

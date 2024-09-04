@@ -22,17 +22,17 @@ OFILES=\
 	divider.$O\
 	divider_helper.$O\
 	dma.$O\
-#	double_aeabi.$O\
+	double_aeabi.$O\
 	double_init_rom.$O\
-#	double_math.$O\
-	double_none.$O\
+	double_math.$O\
+#	double_none.$O\
 	double_v1_rom_shim.$O\
 	exception.$O\
 	flash.$O\
-#	float_aeabi.$O\
+	float_aeabi.$O\
 	float_init_rom.$O\
-#	float_math.$O\
-	float_none.$O\
+	float_math.$O\
+#	float_none.$O\
 	float_v1_rom_shim.$O\
 	gpio.$O\
 	i2c.$O\

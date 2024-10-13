@@ -7,7 +7,7 @@
 #include "flash.h"
 #include "unique_id.h"
 
-//static_assert(PICO_UNIQUE_BOARD_ID_SIZE_BYTES == FLASH_UNIQUE_ID_SIZE_BYTES, "Board ID size must match flash ID size");
+static_assert(PICO_UNIQUE_BOARD_ID_SIZE_BYTES == FLASH_UNIQUE_ID_SIZE_BYTES, "Board ID size must match flash ID size");
 
 static pico_unique_board_id_t retrieved_id;
 

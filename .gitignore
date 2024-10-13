@@ -5,3 +5,5 @@ guide
 o.out
 *.elf.map
 *.uf2
+hide
+*.obj

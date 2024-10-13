@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "hardware_flash.h"
+#include "flash.h"
 #include "bootrom.h"
 
 #include "hardware_structs/ssi.h"
@@ -41,7 +41,7 @@ static void __no_inline_not_in_flash_func(flash_init_boot2_copyout)(void) {
 }
 
 static void __no_inline_not_in_flash_func(flash_enable_xip_via_boot2)(void) {
-    ((void (*)(void))((intptr_t)boot2_copyout+1))();
+    ((void (*)(void))boot2_copyout+1)();
 }
 
 #else

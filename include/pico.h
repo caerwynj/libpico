@@ -22,7 +22,7 @@
 #define __PICO_CONCAT1(x, y) x ## y
 
 #include "types.h"
-#include "version.h"
+#include "pico_version.h"
 
 // PICO_CONFIG: PICO_CONFIG_HEADER, unquoted path to header include in place of the default pico/config.h which may be desirable for build systems which can't easily generate the config_autogen header, group=pico_base
 #ifdef PICO_CONFIG_HEADER

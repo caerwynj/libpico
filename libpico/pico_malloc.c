@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "pico.h"
 #include "malloc.h"
 
@@ -13,10 +14,10 @@
 auto_init_mutex(malloc_mutex);
 #endif
 
-extern void *REAL_FUNC(malloc)(size_t size);
-extern void *REAL_FUNC(calloc)(size_t count, size_t size);
-extern void *REAL_FUNC(realloc)(void *mem, size_t size);
-extern void REAL_FUNC(free)(void *mem);
+extern void *__real_malloc(size_t size);
+extern void *__real_calloc(size_t count, size_t size);
+extern void *__real_realloc(void *mem, size_t size);
+extern void __real_free(void *mem);
 
 extern char __StackLimit; /* Set by linker.  */
 
@@ -28,11 +29,11 @@ static inline void check_alloc(__unused void *mem, __unused uint size) {
 #endif
 }
 
-void *WRAPPER_FUNC(malloc)(size_t size) {
+void *__wrap_malloc(size_t size) {
 #if PICO_USE_MALLOC_MUTEX
     mutex_enter_blocking(&malloc_mutex);
 #endif
-    void *rc = REAL_FUNC(malloc)(size);
+    void *rc = __real_malloc(size);
 #if PICO_USE_MALLOC_MUTEX
     mutex_exit(&malloc_mutex);
 #endif
@@ -45,11 +46,11 @@ void *WRAPPER_FUNC(malloc)(size_t size) {
     return rc;
 }
 
-void *WRAPPER_FUNC(calloc)(size_t count, size_t size) {
+void *__wrap_calloc(size_t count, size_t size) {
 #if PICO_USE_MALLOC_MUTEX
     mutex_enter_blocking(&malloc_mutex);
 #endif
-    void *rc = REAL_FUNC(calloc)(count, size);
+    void *rc = __real_calloc(count, size);
 #if PICO_USE_MALLOC_MUTEX
     mutex_exit(&malloc_mutex);
 #endif
@@ -62,11 +63,11 @@ void *WRAPPER_FUNC(calloc)(size_t count, size_t size) {
     return rc;
 }
 
-void *WRAPPER_FUNC(realloc)(void *mem, size_t size) {
+void *__wrap_realloc(void *mem, size_t size) {
 #if PICO_USE_MALLOC_MUTEX
     mutex_enter_blocking(&malloc_mutex);
 #endif
-    void *rc = REAL_FUNC(realloc)(mem, size);
+    void *rc = __real_realloc(mem, size);
 #if PICO_USE_MALLOC_MUTEX
     mutex_exit(&malloc_mutex);
 #endif
@@ -79,11 +80,11 @@ void *WRAPPER_FUNC(realloc)(void *mem, size_t size) {
     return rc;
 }
 
-void WRAPPER_FUNC(free)(void *mem) {
+void __wrap_free(void *mem) {
 #if PICO_USE_MALLOC_MUTEX
     mutex_enter_blocking(&malloc_mutex);
 #endif
-    REAL_FUNC(free)(mem);
+    __real_free(mem);
 #if PICO_USE_MALLOC_MUTEX
     mutex_exit(&malloc_mutex);
 #endif

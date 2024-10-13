@@ -2,15 +2,8 @@
 
 HFILES=
 
-CYW43=\
-	cyw43_ctrl.$O\
-	cyw43_ll.$O\
-	cyw43_stats.$O\
-
 
 OFILES=\
-	adc.$O\
-	asm_helper.$O\
 	binary_info.$O\
 	bit_ops_aeabi.$O\
 	bootrom.$O\
@@ -20,55 +13,38 @@ OFILES=\
 	crt0.$O\
 	datetime.$O\
 	divider.$O\
-	divider_helper.$O\
-	dma.$O\
 	double_aeabi.$O\
 	double_init_rom.$O\
 	double_math.$O\
-#	double_none.$O\
 	double_v1_rom_shim.$O\
-	exception.$O\
 	flash.$O\
 	float_aeabi.$O\
 	float_init_rom.$O\
 	float_math.$O\
-#	float_none.$O\
 	float_v1_rom_shim.$O\
 	gpio.$O\
-	i2c.$O\
-	interp.$O\
+	hardware_divider.$O\
 	irq.$O\
 	irq_handler_chain.$O\
 	lock_core.$O\
-	mem_ops.$O\
 	mem_ops_aeabi.$O\
-#	multicore.$O\
 	mutex.$O\
+#	new_delete.cpp.$Obj\
 	pheap.$O\
-	pico_bootsel_via_double_reset.$O\
-	pico_divider.$O\
 	pico_int64_ops_aeabi.$O\
 	pico_malloc.$O\
-	pio.$O\
 	platform.$O\
 	pll.$O\
 	printf.$O\
-	printf_none.$O\
 	queue.$O\
 	reset_interface.$O\
-	rp2040_usb_device_enumeration.$O\
-	rtc.$O\
 	runtime.$O\
 	sem.$O\
-	spi.$O\
 	stdio.$O\
-#	stdio_semihosting.$O\
-#	stdio_uart.$O\
 	stdio_usb.$O\
 	stdio_usb_descriptors.$O\
 	stdlib.$O\
 	sync.$O\
-	system_RP2040.$O\
 	time.$O\
 	timeout_helper.$O\
 	timer.$O\
@@ -77,9 +53,7 @@ OFILES=\
 	vreg.$O\
 	watchdog.$O\
 	xosc.$O\
-	hardware_flash.$O\
-#	$CYW43
-
+	rp2040_usb_device_enumeration.$O
 
 LIB=libpico.a
 LIBDIR=../lib

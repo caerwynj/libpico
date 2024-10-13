@@ -11,6 +11,7 @@ cp ../pico-sdk/src/boards/include/boards/pico.h include/boards_pico.h
 cp ../pico-sdk/src/boards/include/boards/pico_w.h include/boards_pico_w.h
 cp ../pico-examples/build/generated/pico_base/pico/version.h include
 cp ../pico-sdk/src/common/pico_base/include/pico/config.h include
+cp ../pico-sdk/src/rp2_common/boot_stage2/include/boot_stage2/config.h include/boot_stage2_config.h
 
 mv include/stdio.h include/pico_stdio.h
 mv include/stdlib.h include/pico_stdlib.h
@@ -23,11 +24,13 @@ find ../pico-sdk/src/rp2_common -name '*.[cS]' -exec cp '{}' libpico \;
 
 cp ../pico-sdk/src/rp2_common/hardware_flash/flash.c libpico/hardware_flash.c
 cp ../pico-sdk/src/rp2_common/hardware_flash/include/hardware/flash.h include/hardware_flash.h
+cp ../pico-sdk/src/rp2_common/hardware_divider/divider.S libpico/hardware_divider.S
+cp ../pico-sdk/src/rp2_common/hardware_divider/include/hardware/divider.h include/hardware_divider.h
 
 sam -d include/*.h include/*/*.h < sam.script
 sam -d libpico/*.[cS] < sam.script
 
 
-cp ../pico-sdk/lib/cyw43-driver/src/*.c libpico
-cp ../pico-sdk/lib/cyw43-driver/src/*.h include
-cp ../pico-sdk/lib/cyw43-driver/firmware/*.h ../include
+#cp ../pico-sdk/lib/cyw43-driver/src/*.c libpico
+#cp ../pico-sdk/lib/cyw43-driver/src/*.h include
+#cp ../pico-sdk/lib/cyw43-driver/firmware/*.h ../include

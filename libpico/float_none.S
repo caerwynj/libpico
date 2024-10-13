@@ -7,7 +7,9 @@
 #include "asm_helper.S"
 #include "sf_table.h"
 
-pico_default_asm_setup
+.syntax unified
+.cpu cortex-m0plus
+.thumb
 
 wrapper_func __aeabi_fadd
 wrapper_func __aeabi_fdiv
@@ -27,6 +29,7 @@ wrapper_func __aeabi_i2f
 wrapper_func __aeabi_l2f
 wrapper_func __aeabi_ui2f
 wrapper_func __aeabi_ul2f
+wrapper_func __aeabi_i2f
 wrapper_func __aeabi_f2iz
 wrapper_func __aeabi_f2lz
 wrapper_func __aeabi_f2uiz

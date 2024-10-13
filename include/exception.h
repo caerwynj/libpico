@@ -9,6 +9,7 @@
 
 #include "pico.h"
 #include "address_mapped.h"
+#include "hardware_regs/m0plus.h"
 
 /** \file exception.h
  *  \defgroup hardware_exception hardware_exception

@@ -8,7 +8,7 @@
 #include "binary_info.h"
 
 #if !PICO_NO_FLASH
-#include "config.h"
+#include "boot_stage2_config.h"
 #endif
 
 // Note we put at most 4 pieces of binary info in the reset section because that's how much spare space we had

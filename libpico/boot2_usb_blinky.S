@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "asm_helper.S"
-
 // Stub second stage which calls into USB bootcode, with parameters.
 // USB boot takes two parameters:
 // - A GPIO mask for activity LED -- if mask is 0, don't touch GPIOs at all
@@ -21,12 +19,17 @@
 #define ACTIVITY_LED 0
 #define BOOT_MODE USB_BOOT_MSD_AND_PICOBOOT
 
-pico_default_asm_setup
+.cpu cortex-m0
+.thumb
 
 .section .text
 
-regular_func _stage2_boot
-    movs r7, #0x14               // Pointer to _well_known pointer table in ROM
+.global _stage2_boot
+.type _stage2_boot,%function
+
+.thumb_func
+_stage2_boot:
+    mov r7, #0x14               // Pointer to _well_known pointer table in ROM
     ldrh r0, [r7, #0]           // Offset 0 is 16 bit pointer to function table
     ldrh r7, [r7, #4]           // Offset 4 is 16 bit pointer to table lookup routine
     ldr r1, =('U' | ('B' << 8)) // Symbol for USB Boot
@@ -36,7 +39,7 @@ regular_func _stage2_boot
 
     mov r7, r0
     ldr r0, =(1u << ACTIVITY_LED) // Mask of which GPIO (or GPIOs) to use
-    movs r1, #BOOT_MODE
+    mov r1, #BOOT_MODE
     blx r7
 
 dead:

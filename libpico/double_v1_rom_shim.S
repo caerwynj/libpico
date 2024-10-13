@@ -17,7 +17,9 @@
 
 #include "asm_helper.S"
 
-pico_default_asm_setup
+.syntax unified
+.cpu cortex-m0plus
+.thumb
 
 .macro double_section name
 // todo separate flag for shims?

@@ -27,7 +27,9 @@ static inline void i2c_unreset(i2c_inst_t *i2c) {
 
 // Addresses of the form 000 0xxx or 111 1xxx are reserved. No slave should
 // have these addresses.
-#define i2c_reserved_addr(addr) (((addr) & 0x78) == 0 || ((addr) & 0x78) == 0x78)
+static inline bool i2c_reserved_addr(uint8_t addr) {
+    return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
+}
 
 uint i2c_init(i2c_inst_t *i2c, uint baudrate) {
     i2c_reset(i2c);

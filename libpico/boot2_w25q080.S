@@ -86,7 +86,9 @@
 // Start of 2nd Stage Boot Code
 // ----------------------------------------------------------------------------
 
-pico_default_asm_setup
+.syntax unified
+.cpu cortex-m0plus
+.thumb
 
 .section .text
 
@@ -95,7 +97,10 @@ pico_default_asm_setup
 // Otherwise it will be a return address -- second stage being called as a
 // function by user code, after copying out of XIP region. r3 holds SSI base,
 // r0...2 used as temporaries. Other GPRs not used.
-regular_func _stage2_boot
+.global _stage2_boot
+.type _stage2_boot,%function
+.thumb_func
+_stage2_boot:
     push {lr}
 
     // Set pad configuration:

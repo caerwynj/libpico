@@ -7,7 +7,9 @@
 #include "asm_helper.S"
 #include "sf_table.h"
 
-pico_default_asm_setup
+.syntax unified
+.cpu cortex-m0plus
+.thumb
 
     wrapper_func __aeabi_dadd
     wrapper_func __aeabi_ddiv

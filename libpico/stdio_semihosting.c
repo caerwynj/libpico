@@ -25,11 +25,11 @@ static void stdio_semihosting_out_chars(const char *buf, int length) {
     args.buf = buf;
     args.len = length;
 
-    pico_default_asm (
+    __asm (
     // r1 must contain a pointer to the arguments
-    "movs r1, %[args]\n"
+    "mov r1, %[args]\n"
     // semihosting call number 0x05 = SYS_WRITE
-    "movs r0, #5\n"
+    "mov r0, #5\n"
     // make the semihosting call: https://developer.arm.com/documentation/dui0375/g/What-is-Semihosting-/The-semihosting-interface
     "bkpt 0xab\n"
     :

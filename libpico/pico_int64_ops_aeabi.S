@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "asm_helper.S"
+.syntax unified
+.cpu cortex-m0plus
+.thumb
 
-pico_default_asm_setup
+#include "asm_helper.S"
 
 .macro int64_section name
 #if PICO_INT64_OPS_IN_RAM

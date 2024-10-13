@@ -1,221 +1,176 @@
 /*
- * Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
+ * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "flash.h"
-#include "exception.h"
-#include "sync.h"
-#if PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT
-#include "multicore.h"
-#endif
-#if PICO_FLASH_SAFE_EXECUTE_SUPPORT_FREERTOS_SMP
-#include "FreeRTOS.h"
-#include "task.h"
-// now we have FreeRTOS header we can check core count... we can only use FreeRTOS SMP mechanism
-// with two cores
-#if configNUM_CORES == 2
-#if configUSE_CORE_AFFINITY
-#define PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP 1
+#include "bootrom.h"
+
+#include "hardware_structs/ssi.h"
+#include "hardware_structs/ioqspi.h"
+
+#define FLASH_BLOCK_ERASE_CMD 0xd8
+
+// Standard RUID instruction: 4Bh command prefix, 32 dummy bits, 64 data bits.
+#define FLASH_RUID_CMD 0x4b
+#define FLASH_RUID_DUMMY_BYTES 4
+#define FLASH_RUID_DATA_BYTES 8
+#define FLASH_RUID_TOTAL_BYTES (1 + FLASH_RUID_DUMMY_BYTES + FLASH_RUID_DATA_BYTES)
+
+//-----------------------------------------------------------------------------
+// Infrastructure for reentering XIP mode after exiting for programming (take
+// a copy of boot2 before XIP exit). Calling boot2 as a function works because
+// it accepts a return vector in LR (and doesn't trash r4-r7). Bootrom passes
+// NULL in LR, instructing boot2 to enter flash vector table's reset handler.
+
+#if !PICO_NO_FLASH
+
+#define BOOT2_SIZE_WORDS 64
+
+static uint32_t boot2_copyout[BOOT2_SIZE_WORDS];
+static bool boot2_copyout_valid = false;
+
+static void __no_inline_not_in_flash_func(flash_init_boot2_copyout)(void) {
+    if (boot2_copyout_valid)
+        return;
+    for (int i = 0; i < BOOT2_SIZE_WORDS; ++i)
+        boot2_copyout[i] = ((uint32_t *)XIP_BASE)[i];
+    __compiler_memory_barrier();
+    boot2_copyout_valid = true;
+}
+
+static void __no_inline_not_in_flash_func(flash_enable_xip_via_boot2)(void) {
+    ((void (*)(void))boot2_copyout+1)();
+}
+
 #else
-#error configUSE_CORE_AFFINITY is required for PICO_FLASH_SAFE_EXECUTE_SUPPORT_FREERTOS_SMP
-#endif
-#endif
-#endif
 
-// There are multiple scenarios:
-//
-// 1. No use of core 1 - we just want to disable IRQs and not wait on core 1 to acquiesce
-// 2. Regular pico_multicore - we need to use multicore lockout.
-// 3. FreeRTOS on core 0, no use of core 1 - we just want to disable IRQs
-// 4. FreeRTOS SMP on both cores - we need to schedule a high priority task on the other core to disable IRQs.
-// 5. FreeRTOS on one core, but application is using the other core. ** WE CANNOT SUPPORT THIS TODAY ** without
-//    the equivalent PICO_FLASH_ASSUME_COREx_SAFE (i.e. the user mkaing sure the other core is fine)
+static void __no_inline_not_in_flash_func(flash_init_boot2_copyout)(void) {}
 
-static bool default_core_init_deinit(bool init);
-static int default_enter_safe_zone_timeout_ms(uint32_t timeout_ms);
-static int default_exit_safe_zone_timeout_ms(uint32_t timeout_ms);
-
-// note the default methods are combined, rather than having a separate helper for
-// FreeRTOS, as we may support mixed multicore and non SMP FreeRTOS in the future
-
-static flash_safety_helper_t default_flash_safety_helper = {
-        .core_init_deinit = default_core_init_deinit,
-        .enter_safe_zone_timeout_ms = default_enter_safe_zone_timeout_ms,
-        .exit_safe_zone_timeout_ms = default_exit_safe_zone_timeout_ms
-};
-
-#if PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP
-enum {
-    FREERTOS_LOCKOUT_NONE = 0,
-    FREERTOS_LOCKOUT_LOCKER_WAITING,
-    FREERTOS_LOCKOUT_LOCKEE_READY,
-    FREERTOS_LOCKOUT_LOCKER_DONE,
-    FREERTOS_LOCKOUT_LOCKEE_DONE,
-};
-// state for the lockout operation launched from the corresponding core
-static volatile uint8_t lockout_state[NUM_CORES];
-#endif
-
-__attribute__((weak)) flash_safety_helper_t *get_flash_safety_helper(void) {
-    return &default_flash_safety_helper;
+static void __no_inline_not_in_flash_func(flash_enable_xip_via_boot2)(void) {
+    // Set up XIP for 03h read on bus access (slow but generic)
+    rom_flash_enter_cmd_xip_fn flash_enter_cmd_xip = (rom_flash_enter_cmd_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_ENTER_CMD_XIP);
+    assert(flash_enter_cmd_xip);
+    flash_enter_cmd_xip();
 }
 
-bool flash_safe_execute_core_init(void) {
-    flash_safety_helper_t *helper = get_flash_safety_helper();
-    return helper ? helper->core_init_deinit(true) : false;
+#endif
+
+//-----------------------------------------------------------------------------
+// Actual flash programming shims (work whether or not PICO_NO_FLASH==1)
+
+void __no_inline_not_in_flash_func(flash_range_erase)(uint32_t flash_offs, size_t count) {
+#ifdef PICO_FLASH_SIZE_BYTES
+    hard_assert(flash_offs + count <= PICO_FLASH_SIZE_BYTES);
+#endif
+    invalid_params_if(FLASH, flash_offs & (FLASH_SECTOR_SIZE - 1));
+    invalid_params_if(FLASH, count & (FLASH_SECTOR_SIZE - 1));
+    rom_connect_internal_flash_fn connect_internal_flash = (rom_connect_internal_flash_fn)rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH);
+    rom_flash_exit_xip_fn flash_exit_xip = (rom_flash_exit_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP);
+    rom_flash_range_erase_fn flash_range_erase = (rom_flash_range_erase_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_RANGE_ERASE);
+    rom_flash_flush_cache_fn flash_flush_cache = (rom_flash_flush_cache_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE);
+    assert(connect_internal_flash && flash_exit_xip && flash_range_erase && flash_flush_cache);
+    flash_init_boot2_copyout();
+
+    // No flash accesses after this point
+    __compiler_memory_barrier();
+
+    connect_internal_flash();
+    flash_exit_xip();
+    flash_range_erase(flash_offs, count, FLASH_BLOCK_SIZE, FLASH_BLOCK_ERASE_CMD);
+    flash_flush_cache(); // Note this is needed to remove CSn IO force as well as cache flushing
+    flash_enable_xip_via_boot2();
 }
 
-bool flash_safe_execute_core_deinit(void) {
-    flash_safety_helper_t *helper = get_flash_safety_helper();
-    return helper ? helper->core_init_deinit(false) : false;
+void __no_inline_not_in_flash_func(flash_range_program)(uint32_t flash_offs, const uint8_t *data, size_t count) {
+#ifdef PICO_FLASH_SIZE_BYTES
+    hard_assert(flash_offs + count <= PICO_FLASH_SIZE_BYTES);
+#endif
+    invalid_params_if(FLASH, flash_offs & (FLASH_PAGE_SIZE - 1));
+    invalid_params_if(FLASH, count & (FLASH_PAGE_SIZE - 1));
+    rom_connect_internal_flash_fn connect_internal_flash = (rom_connect_internal_flash_fn)rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH);
+    rom_flash_exit_xip_fn flash_exit_xip = (rom_flash_exit_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP);
+    rom_flash_range_program_fn flash_range_program = (rom_flash_range_program_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_RANGE_PROGRAM);
+    rom_flash_flush_cache_fn flash_flush_cache = (rom_flash_flush_cache_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE);
+    assert(connect_internal_flash && flash_exit_xip && flash_range_program && flash_flush_cache);
+    flash_init_boot2_copyout();
+
+    __compiler_memory_barrier();
+
+    connect_internal_flash();
+    flash_exit_xip();
+    flash_range_program(flash_offs, data, count);
+    flash_flush_cache(); // Note this is needed to remove CSn IO force as well as cache flushing
+    flash_enable_xip_via_boot2();
 }
 
-int flash_safe_execute(void (*func)(void *), void *param, uint32_t enter_exit_timeout_ms) {
-    flash_safety_helper_t *helper = get_flash_safety_helper();
-    if (!helper) return PICO_ERROR_NOT_PERMITTED;
-    int rc = helper->enter_safe_zone_timeout_ms(enter_exit_timeout_ms);
-    if (!rc) {
-        func(param);
-        rc = helper->exit_safe_zone_timeout_ms(enter_exit_timeout_ms);
-    }
-    return rc;
+//-----------------------------------------------------------------------------
+// Lower-level flash access functions
+
+#if !PICO_NO_FLASH
+// Bitbanging the chip select using IO overrides, in case RAM-resident IRQs
+// are still running, and the FIFO bottoms out. (the bootrom does the same)
+static void __no_inline_not_in_flash_func(flash_cs_force)(bool high) {
+    uint32_t field_val = high ?
+        IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_VALUE_HIGH :
+        IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_VALUE_LOW;
+    hw_write_masked(&ioqspi_hw->io[1].ctrl,
+        field_val << IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_LSB,
+        IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_BITS
+    );
 }
 
-static bool default_core_init_deinit(__unused bool init) {
-#if PICO_FLASH_ASSUME_CORE0_SAFE
-    if (!get_core_num()) return true;
-#endif
-#if PICO_FLASH_ASSUME_CORE1_SAFE
-    if (get_core_num()) return true;
-#endif
-#if PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP
-    return true;
-#endif
-#if PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT
-    if (!init) {
-        return false;
-    }
-    multicore_lockout_victim_init();
-#endif
-    return true;
-}
+void __no_inline_not_in_flash_func(flash_do_cmd)(const uint8_t *txbuf, uint8_t *rxbuf, size_t count) {
+    rom_connect_internal_flash_fn connect_internal_flash = (rom_connect_internal_flash_fn)rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH);
+    rom_flash_exit_xip_fn flash_exit_xip = (rom_flash_exit_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP);
+    rom_flash_flush_cache_fn flash_flush_cache = (rom_flash_flush_cache_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE);
+    assert(connect_internal_flash && flash_exit_xip && flash_flush_cache);
+    flash_init_boot2_copyout();
+    __compiler_memory_barrier();
+    connect_internal_flash();
+    flash_exit_xip();
 
-// irq_state for the lockout operation launched from the corresponding core
-static uint32_t irq_state[NUM_CORES];
-
-static bool use_irq_only(void) {
-#if PICO_FLASH_ASSUME_CORE0_SAFE
-    if (get_core_num()) return true;
-#endif
-#if PICO_FLASH_ASSUME_CORE1_SAFE
-    if (!get_core_num()) return true;
-#endif
-    return false;
-}
-
-#if PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP
-static void __not_in_flash_func(flash_lockout_task)(__unused void *vother_core_num) {
-    uint other_core_num = (uintptr_t)vother_core_num;
-    while (lockout_state[other_core_num] != FREERTOS_LOCKOUT_LOCKER_WAITING) {
-        __wfe(); // we don't bother to try to let lower priority tasks run
-    }
-    uint32_t save = save_and_disable_interrupts();
-    lockout_state[other_core_num] = FREERTOS_LOCKOUT_LOCKEE_READY;
-    __sev();
-    while (lockout_state[other_core_num] == FREERTOS_LOCKOUT_LOCKEE_READY) {
-        __wfe(); // we don't bother to try to let lower priority tasks run
-    }
-    restore_interrupts(save);
-    lockout_state[other_core_num] = FREERTOS_LOCKOUT_LOCKEE_DONE;
-    __sev();
-    // bye bye
-    vTaskDelete(NULL);
-}
-#endif
-
-static int default_enter_safe_zone_timeout_ms(__unused uint32_t timeout_ms) {
-    int rc = PICO_OK;
-    if (!use_irq_only()) {
-#if PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP
-        // Note that whilst taskENTER_CRITICAL sounds promising (and on non SMP it disabled IRQs), on SMP
-        // it only prevents the other core from also entering a critical section.
-        // Therefore, we must do our own handshake which starts a task on the other core and have it disable interrupts
-        uint core_num = get_core_num();
-        // create at low priority
-        TaskHandle_t task_handle;
-        if (pdPASS != xTaskCreate(flash_lockout_task, "flash lockout", configMINIMAL_STACK_SIZE, (void *)core_num, 0, &task_handle)) {
-            return PICO_ERROR_INSUFFICIENT_RESOURCES;
+    flash_cs_force(0);
+    size_t tx_remaining = count;
+    size_t rx_remaining = count;
+    // We may be interrupted -- don't want FIFO to overflow if we're distracted.
+    const size_t max_in_flight = 16 - 2;
+    while (tx_remaining || rx_remaining) {
+        uint32_t flags = ssi_hw->sr;
+        bool can_put = !!(flags & SSI_SR_TFNF_BITS);
+        bool can_get = !!(flags & SSI_SR_RFNE_BITS);
+        if (can_put && tx_remaining && rx_remaining - tx_remaining < max_in_flight) {
+            ssi_hw->dr0 = *txbuf++;
+            --tx_remaining;
         }
-        lockout_state[core_num] = FREERTOS_LOCKOUT_LOCKER_WAITING;
-        __sev();
-        // bind to other core
-        vTaskCoreAffinitySet(task_handle, 1u << (core_num ^ 1));
-        // and make it super high priority
-        vTaskPrioritySet(task_handle, configMAX_PRIORITIES -1);
-        absolute_time_t until = make_timeout_time_ms(timeout_ms);
-        while (lockout_state[core_num] != FREERTOS_LOCKOUT_LOCKEE_READY && !time_reached(until)) {
-            __wfe(); // we don't bother to try to let lower priority tasks run
+        if (can_get && rx_remaining) {
+            *rxbuf++ = (uint8_t)ssi_hw->dr0;
+            --rx_remaining;
         }
-        if (lockout_state[core_num] != FREERTOS_LOCKOUT_LOCKEE_READY) {
-            lockout_state[core_num] = FREERTOS_LOCKOUT_LOCKER_DONE;
-            rc = PICO_ERROR_TIMEOUT;
-        }
-        // todo we may get preempted here, but I think that is OK unless what is pre-empts requires
-        //      the other core to be running.
-#elif PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT
-        // we cannot mix multicore_lockout and FreeRTOS as they both use the multicore FIFO...
-        // the user, will have to roll their own mechanism in this case.
-#if LIB_FREERTOS_KERNEL
-#if PICO_FLASH_ASSERT_ON_UNSAFE
-        assert(false); // we expect the other core to have been initialized via flash_safe_execute_core_init()
-                       // unless PICO_FLASH_ASSUME_COREX_SAFE is set
+    }
+    flash_cs_force(1);
+
+    flash_flush_cache();
+    flash_enable_xip_via_boot2();
+}
 #endif
-        rc = PICO_ERROR_NOT_PERMITTED;
-#else // !LIB_FREERTOS_KERNEL
-        if (multicore_lockout_victim_is_initialized(get_core_num()^1)) {
-            if (!multicore_lockout_start_timeout_us(timeout_ms * 1000ull)) {
-                rc = PICO_ERROR_TIMEOUT;
-            }
-        } else {
-#if PICO_FLASH_ASSERT_ON_UNSAFE
-            assert(false); // we expect the other core to have been initialized via flash_safe_execute_core_init()
-                           // unless PICO_FLASH_ASSUME_COREX_SAFE is set
-#endif
-            rc = PICO_ERROR_NOT_PERMITTED;
-        }
-#endif // !LIB_FREERTOS_KERNEL
+
+// Use standard RUID command to get a unique identifier for the flash (and
+// hence the board)
+
+static_assert(FLASH_UNIQUE_ID_SIZE_BYTES == FLASH_RUID_DATA_BYTES, "");
+
+void flash_get_unique_id(uint8_t *id_out) {
+#if PICO_NO_FLASH
+    __unused uint8_t *ignore = id_out;
+    panic_unsupported();
 #else
-        // no support for making other core safe provided, so fall through to irq
-        // note this is the case for a regular single core program
+    uint8_t txbuf[FLASH_RUID_TOTAL_BYTES] = {0};
+    uint8_t rxbuf[FLASH_RUID_TOTAL_BYTES] = {0};
+    txbuf[0] = FLASH_RUID_CMD;
+    flash_do_cmd(txbuf, rxbuf, FLASH_RUID_TOTAL_BYTES);
+    for (int i = 0; i < FLASH_RUID_DATA_BYTES; i++)
+        id_out[i] = rxbuf[i + 1 + FLASH_RUID_DUMMY_BYTES];
 #endif
-    }
-    if (rc == PICO_OK) {
-        // we always want to disable IRQs on our core
-        irq_state[get_core_num()] = save_and_disable_interrupts();
-    }
-    return rc;
-}
-
-static int default_exit_safe_zone_timeout_ms(__unused uint32_t timeout_ms) {
-    // assume if we're exiting we're called then entry happened successfully
-    restore_interrupts(irq_state[get_core_num()]);
-    if (!use_irq_only()) {
-#if PICO_FLASH_SAFE_EXECUTE_USE_FREERTOS_SMP
-        uint core_num = get_core_num();
-        lockout_state[core_num] = FREERTOS_LOCKOUT_LOCKER_DONE;
-        __sev();
-        absolute_time_t until = make_timeout_time_ms(timeout_ms);
-        while (lockout_state[core_num] != FREERTOS_LOCKOUT_LOCKEE_DONE && !time_reached(until)) {
-            __wfe(); // we don't bother to try to let lower priority tasks run
-        }
-        if (lockout_state[core_num] != FREERTOS_LOCKOUT_LOCKEE_DONE) {
-            return PICO_ERROR_TIMEOUT;
-        }
-#elif PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT
-        return multicore_lockout_end_timeout_us(timeout_ms * 1000ull) ? PICO_OK : PICO_ERROR_TIMEOUT;
-#endif
-    }
-    return PICO_OK;
 }

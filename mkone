@@ -1,5 +1,5 @@
 
-libs=${LIBS:%=../../lib/lib%.a}
+libs=${LIBS:%=$ROOT/lib/lib%.a}
 
 all:V:	$O.uf2
 
@@ -18,8 +18,8 @@ clean:V: clean-std
 $O.uf2: $O.out
 	elf2uf2 $O.out $O.uf2
 
-$O.out:	$OFILES $libs
-	$LD $LDFLAGS -o $target $OFILES $libs $SYSLIBS $ROOT/boot_stage2/bs2_default_padded_checksummed.S 
+$O.out:	$OFILES 
+	$LD $LDFLAGS -o $target $OFILES $SYSLIBS $PICOSDK $ROOT/boot_stage2/bs2_default_padded_checksummed.S 
 
 %.$O:	$HFILES		# don't combine with following %.$O rules
 

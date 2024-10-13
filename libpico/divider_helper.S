@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// Note this file is always included by another, so does not do pico_default_asm_setup
 #include "hardware_regs/addressmap.h"
 #include "hardware_regs/sio.h"
 

@@ -1,139 +1,111 @@
 /*
- * Copyright (c) 2023 Raspberry Pi (Trading) Ltd.
+ * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef _PICO_FLASH_H
-#define _PICO_FLASH_H
+#ifndef _HARDWARE_FLASH_H
+#define _HARDWARE_FLASH_H
 
 #include "pico.h"
 
-#include "flash.h"
-#include "pico_time.h"
-
-/** \file pico/flash.h
- *  \defgroup pico_flash pico_flash
+/** \file flash.h
+ *  \defgroup hardware_flash hardware_flash
  *
- * High level flash API
+ * Low level flash programming and erase API
  *
- * Flash cannot be erased or written to when in XIP mode. However the system cannot directly access memory in the flash
- * address space when not in XIP mode.
+ * Note these functions are *unsafe* if you are using both cores, and the other 
+ * is executing from flash concurrently with the operation. In this could be the 
+ * case, you must perform your own synchronisation to make sure that no XIP
+ * accesses take place during flash programming. One option is to use the
+ * \ref multicore_lockout functions.
  *
- * It is therefore critical that no code or data is being read from flash while flash is been written or erased.
+ * Likewise they are *unsafe* if you have interrupt handlers or an interrupt
+ * vector table in flash, so you must disable interrupts before calling in
+ * this case.
  *
- * If only one core is being used, then the problem is simple - just disable interrupts; however if code is running on
- * the other core, then it has to be asked, nicely, to avoid flash for a bit. This is hard to do if you don't have
- * complete control of the code running on that core at all times.
+ * If PICO_NO_FLASH=1 is not defined (i.e. if the program is built to run from
+ * flash) then these functions will make a static copy of the second stage
+ * bootloader in SRAM, and use this to reenter execute-in-place mode after
+ * programming or erasing flash, so that they can safely be called from
+ * flash-resident code.
  *
- * This library provides a \ref flash_safe_execute method which calls a function back having sucessfully gotten
- * into a state where interrupts are disabled, and the other core is not executing or reading from flash.
- *
- * How it does this is dependent on the supported environment (Free RTOS SMP or pico_multicore). Additionally
- * the user can provide their own mechanism by providing a strong definition of \ref get_flash_safety_helper().
- *
- * Using the default settings, flash_safe_execute will only call the callback function if the state is safe
- * otherwise returning an error (or an assert depending on \ref PICO_FLASH_ASSERT_ON_UNSAFE).
- *
- * There are conditions where safety would not be guaranteed:
- *
- * 1. FreeRTOS smp with `configNUM_CORES=1` - FreeRTOS still uses pico_multicore in this case, so \ref flash_safe_execute
- * cannot know what the other core is doing, and there is no way to force code execution between a FreeRTOS core
- * and a non FreeRTOS core.
- * 2. FreeRTOS non SMP with pico_multicore - Again, there is no way to force code execution between a FreeRTOS core and
- * a non FreeRTOS core.
- * 3. pico_multicore without \ref flash_safe_execute_core_init() having been called on the other core - The
- * \ref flash_safe_execute method does not know if code is executing on the other core, so it has to assume it is. Either
- * way, it is not able to intervene if \ref flash_safe_execute_core_init() has not been called on the other core.
- *
- * Fortunately, all is not lost in this situation, you may:
- *
- * * Set \ref PICO_FLASH_ASSUME_CORE0_SAFE=1 to explicitly say that core 0 is never using flash.
- * * Set \ref PICO_FLASH_ASSUME_CORE1_SAFE=1 to explicitly say that core 1 is never using flash.
+ * \subsection flash_example Example
+ * \include flash_program.c
  */
+
+// PICO_CONFIG: PARAM_ASSERTIONS_ENABLED_FLASH, Enable/disable assertions in the flash module, type=bool, default=0, group=hardware_flash
+#ifndef PARAM_ASSERTIONS_ENABLED_FLASH
+#define PARAM_ASSERTIONS_ENABLED_FLASH 0
+#endif
+
+#define FLASH_PAGE_SIZE (1u << 8)
+#define FLASH_SECTOR_SIZE (1u << 12)
+#define FLASH_BLOCK_SIZE (1u << 16)
+
+#define FLASH_UNIQUE_ID_SIZE_BYTES 8
+
+// PICO_CONFIG: PICO_FLASH_SIZE_BYTES, size of primary flash in bytes, type=int, group=hardware_flash
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Initialize a core such that the other core can lock it out during \ref flash_safe_execute.
- * \ingroup pico_flash
+/*! \brief  Erase areas of flash
+ *  \ingroup hardware_flash
  *
- * \note This is not necessary for FreeRTOS SMP, but should be used when launching via \ref multicore_launch_core1
- * \return true on success; there is no need to call \ref flash_safe_execute_core_deinit() on failure.
+ * \param flash_offs Offset into flash, in bytes, to start the erase. Must be aligned to a 4096-byte flash sector.
+ * \param count Number of bytes to be erased. Must be a multiple of 4096 bytes (one sector).
  */
-bool flash_safe_execute_core_init(void);
+void flash_range_erase(uint32_t flash_offs, size_t count);
 
-/**
- * De-initialize work done by \ref flash_safe_execute_core_init
- * \ingroup pico_flash
- * \return true on success
+/*! \brief  Program flash
+ *  \ingroup hardware_flash
+ *
+ * \param flash_offs Flash address of the first byte to be programmed. Must be aligned to a 256-byte flash page.
+ * \param data Pointer to the data to program into flash
+ * \param count Number of bytes to program. Must be a multiple of 256 bytes (one page).
  */
-bool flash_safe_execute_core_deinit(void);
 
-/**
- * Execute a function with IRQs disabled and with the other core also not executing/reading flash
- * \ingroup pico_flash
+void flash_range_program(uint32_t flash_offs, const uint8_t *data, size_t count);
+
+/*! \brief Get flash unique 64 bit identifier
+ *  \ingroup hardware_flash
  *
- * \param func the function to call
- * \param param the parameter to pass to the function
- * \param enter_exit_timeout_ms the timeout for each of the enter/exit phases when coordinating with the other core
+ * Use a standard 4Bh RUID instruction to retrieve the 64 bit unique
+ * identifier from a flash device attached to the QSPI interface. Since there
+ * is a 1:1 association between the MCU and this flash, this also serves as a
+ * unique identifier for the board.
  *
- * \return PICO_OK on success (the function will have been called).
- *         PICO_TIMEOUT on timeout (the function may have been called).
- *         PICO_ERROR_NOT_PERMITTED if safe execution is not possible (the function will not have been called).
- *         PICO_ERROR_INSUFFICIENT_RESOURCES if the method fails due to dynamic resource exhaustion (the function will not have been called)
- * \note if \ref PICO_FLASH_ASSERT_ON_UNSAFE is 1, this function will assert in debug mode vs returning
- *       PICO_ERROR_NOT_PERMITTED
+ *  \param id_out Pointer to an 8-byte buffer to which the ID will be written
  */
-int flash_safe_execute(void (*func)(void *), void *param, uint32_t enter_exit_timeout_ms);
+void flash_get_unique_id(uint8_t *id_out);
 
-// PICO_CONFIG: PICO_FLASH_ASSERT_ON_UNSAFE, Assert in debug mode rather than returning an error if flash_safe_execute cannot guarantee safety to catch bugs early, type=bool, default=1, group=pico_flash
-#ifndef PICO_FLASH_ASSERT_ON_UNSAFE
-#define PICO_FLASH_ASSERT_ON_UNSAFE 1
-#endif
-
-// PICO_CONFIG: PICO_FLASH_ASSUME_CORE0_SAFE, Assume that core 0 will never be accessing flash and so doesn't need to be considered during flash_safe_execute, type=bool, default=0, group=pico_flash
-#ifndef PICO_FLASH_ASSUME_CORE0_SAFE
-#define PICO_FLASH_ASSUME_CORE0_SAFE 0
-#endif
-
-// PICO_CONFIG: PICO_FLASH_ASSUME_CORE1_SAFE, Assume that core 1 will never be accessing flash and so doesn't need to be considered during flash_safe_execute, type=bool, default=0, group=pico_flash
-#ifndef PICO_FLASH_ASSUME_CORE1_SAFE
-#define PICO_FLASH_ASSUME_CORE1_SAFE 0
-#endif
-
-// PICO_CONFIG: PICO_FLASH_SAFE_EXECUTE_SUPPORT_FREERTOS_SMP, Support using FreeRTOS SMP to make the other core safe during flash_safe_execute, type=bool, default=1 when using FreeRTOS SMP, group=pico_flash
-#ifndef PICO_FLASH_SAFE_EXECUTE_SUPPORT_FREERTOS_SMP
-#if LIB_FREERTOS_KERNEL && FREE_RTOS_KERNEL_SMP // set by RP2040 SMP port
-#define PICO_FLASH_SAFE_EXECUTE_SUPPORT_FREERTOS_SMP 1
-#endif
-#endif
-
-// PICO_CONFIG: PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT, Support using multicore_lockout functions to make the other core safe during flash_safe_execute, type=bool, default=1 when using pico_multicore, group=pico_flash
-#ifndef PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT
-#if LIB_PICO_MULTICORE
-#define PICO_FLASH_SAFE_EXECUTE_PICO_SUPPORT_MULTICORE_LOCKOUT 1
-#endif
-#endif
-
-typedef struct {
-    bool (*core_init_deinit)(bool init);
-    int (*enter_safe_zone_timeout_ms)(uint32_t timeout_ms);
-    int (*exit_safe_zone_timeout_ms)(uint32_t timeout_ms);
-} flash_safety_helper_t;
-
-/**
- * Internal method to return the flash safety helper implementation.
- * \ingroup pico_flash
+/*! \brief Execute bidirectional flash command
+ *  \ingroup hardware_flash
  *
- * Advanced users can provide their own implementation of this function to perform
- * different inter-core coordination before disabling XIP mode.
+ * Low-level function to execute a serial command on a flash device attached
+ * to the QSPI interface. Bytes are simultaneously transmitted and received
+ * from txbuf and to rxbuf. Therefore, both buffers must be the same length,
+ * count, which is the length of the overall transaction. This is useful for
+ * reading metadata from the flash chip, such as device ID or SFDP
+ * parameters.
  *
- * @return the \ref flash_safety_helper_t
+ * The XIP cache is flushed following each command, in case flash state
+ * has been modified. Like other hardware_flash functions, the flash is not
+ * accessible for execute-in-place transfers whilst the command is in
+ * progress, so entering a flash-resident interrupt handler or executing flash
+ * code on the second core concurrently will be fatal. To avoid these pitfalls
+ * it is recommended that this function only be used to extract flash metadata
+ * during startup, before the main application begins to run: see the
+ * implementation of pico_get_unique_id() for an example of this.
+ *
+ *  \param txbuf Pointer to a byte buffer which will be transmitted to the flash
+ *  \param rxbuf Pointer to a byte buffer where data received from the flash will be written. txbuf and rxbuf may be the same buffer.
+ *  \param count Length in bytes of txbuf and of rxbuf
  */
-flash_safety_helper_t *get_flash_safety_helper(void);
+void flash_do_cmd(const uint8_t *txbuf, uint8_t *rxbuf, size_t count);
+
 
 #ifdef __cplusplus
 }

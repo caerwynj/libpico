@@ -4,7 +4,7 @@ TARG=hello_usb
 
 HFILES=
 
-LIBS=pico
+LIBS=
 
 OFILES=hello_usb.$O
 
